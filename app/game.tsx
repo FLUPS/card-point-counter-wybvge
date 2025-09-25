@@ -112,36 +112,70 @@ export default function GameScreen() {
   };
 
   const finishGame = async () => {
-    if (!currentGame) return;
+    console.log('Finish game button pressed');
+    
+    if (!currentGame) {
+      console.log('No current game found');
+      return;
+    }
 
     if (currentGame.totalRounds === 0) {
       Alert.alert('No Rounds Played', 'Please play at least one round before finishing the game.');
       return;
     }
 
-    // Find winner (highest score)
-    const winner = players.reduce((prev, current) => 
-      prev.score > current.score ? prev : current
-    );
+    try {
+      console.log('Processing game completion...');
+      
+      // Find winner (highest score)
+      const winner = players.reduce((prev, current) => 
+        prev.score > current.score ? prev : current
+      );
 
-    const completedGame: Game = {
-      ...currentGame,
-      isCompleted: true,
-      winner: winner.name,
-    };
+      console.log('Winner determined:', winner.name, 'with score:', winner.score);
 
-    await updateGame(currentGame.id, completedGame);
+      const completedGame: Game = {
+        ...currentGame,
+        isCompleted: true,
+        winner: winner.name,
+      };
 
-    Alert.alert(
-      'Game Completed!',
-      `Congratulations ${winner.name}! You won with ${winner.score} points.`,
-      [
-        {
-          text: 'View Results',
-          onPress: () => router.replace('/'),
-        },
-      ]
-    );
+      console.log('Updating game in storage...');
+      await updateGame(currentGame.id, completedGame);
+      console.log('Game updated successfully');
+
+      Alert.alert(
+        'Game Completed!',
+        `Congratulations ${winner.name}! You won with ${winner.score} points.`,
+        [
+          {
+            text: 'View Results',
+            onPress: () => {
+              console.log('Navigating to home screen...');
+              try {
+                router.replace('/');
+              } catch (error) {
+                console.error('Navigation error:', error);
+                // Fallback navigation
+                router.push('/');
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error finishing game:', error);
+      Alert.alert(
+        'Error',
+        'There was an error finishing the game. Please try again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => console.log('Error alert dismissed'),
+          },
+        ]
+      );
+    }
   };
 
   const goBack = () => {
